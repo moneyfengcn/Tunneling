@@ -220,38 +220,34 @@
 
 ### 5.2 Windows 运行方式
 
-1. **控制台模式（适合调试）**
+**1. 控制台模式（适合调试）**
 ```cmd
 textTunneling.Client.exe
 ```
-2. **后台服务模式**
-```cmd
-textTunneling.Client.exe --service
-```
-### 5.3 将客户端安装为 Windows 服务（推荐，开机自启）
-以**管理员身份**打开命令提示符或 `PowerShell`，执行：
+**2. 将客户端安装为 Windows 服务（推荐，开机自启）**
+- 以**管理员身份**打开命令提示符或 `PowerShell`，执行：
 
-**安装服务**：
+- **安装服务**：
 ```cmd
 sc create TunnelingClient binPath= "C:\path\to\Tunneling.Client.exe --service" start= auto
 ```
-**启动服务：**
+- **启动服务：**
 ```cmd
 sc start TunnelingClient
 ```
-**停止服务：**
+- **停止服务：**
 ```cmd
 sc stop TunnelingClient
 ```
-**卸载服务：**
+- **卸载服务：**
 ```cmd
 sc delete TunnelingClient
 ```
-**查看状态：**
+- **查看状态：**
 ```cmd
 sc query TunnelingClient
 ```
-### 5.4 Linux / macOS 运行方式
+### 5.3 Linux / macOS 运行方式
 ```Bash
 chmod +x Tunneling.Client
 ./Tunneling.Client
