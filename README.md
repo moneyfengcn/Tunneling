@@ -1,11 +1,10 @@
-# 量子隧道（Tunneling）使用说明书
+# 量子隧道（Tunneling）
 
 ## 1. 工具简介
 
 **量子隧道（Tunneling）** 是一款高效、稳定的内网端口穿透工具，采用反向隧道技术，通过一台公网服务器实现外网安全访问多个内网服务（如远程桌面、Web、SSH、媒体服务器等）。
-<img src="https://github.com/moneyfengcn/Tunneling/blob/main/main.jpg?raw=true" />
- 
 ### 架构说明（C/S 模式）
+<img src="https://github.com/moneyfengcn/Tunneling/blob/main/main.jpg?raw=true" />
 
 量子隧道（Tunneling）采用经典的 **客户端/服务端（Client/Server）架构**，也称为 **反向隧道(Reverse Tunnel)** 模式，非常适合内网穿透场景。
 
@@ -16,11 +15,11 @@
 - 将外网对 `PublicPort` 的访问转发到对应客户端的内网服务。
 
 
-
 #### 客户端（Client）
-- 部署在内网**任意一台**需要暴露服务的主机上（可为 NAS、个人电脑、开发机、树莓派等）。
-- **一台客户端**即可穿透该内网所有主机上的所有服务（`MapProxy` 中配置的多个 `LocalPort`）。
-- 如需穿透多台内网主机的不同服务，只需在一台主机上运行一个客户端实例
+- 部署在内网**任意一台**主机上（NAS、个人电脑、开发机、树莓派等）。
+- **每个客户端通过唯一的 AccessToken 对应一组映射规则（`MapGroup`）**，实现不同内网环境（如家里、公司）的隔离管理。
+- 一台客户端即可穿透该组内配置的所有内网服务（支持多主机、多端口）。
+- 如需穿透多个独立内网环境，只需在对应内网各运行一个客户端实例，使用不同的 `AccessToken`。
 - 客户端主动向服务端发起并维持长连接（心跳保活），无需在内网路由器进行端口映射。
 
 #### 典型部署示例 （仅需要在内网部署一台Tunneling.Client）
@@ -30,19 +29,19 @@
 - **所有映射规则统一在服务端的 `appsettings.json` 中配置**
 
 #### 优势总结
+- 支持多内网环境、多主机、多服务同时穿透，且分组隔离管理。
 - 内网主机无需公网 IP、无需开端口。
-- 支持多主机、多服务同时穿透。
-- 客户端配置极简，只需填写服务端地址和 AccessToken。
+- 客户端配置极简，只需填写服务端地址和对应的 AccessToken。
 - 安全性高（AccessToken 认证 + 推荐启用 HTTPS）。
 
 **核心原理**：
-- 内网客户端主动向公网服务器建立长连接。
-- 服务器预先定义好端口映射规则（MapProxy）。
+- 内网客户端使用特定 `AccessToken` 主动向公网服务器建立长连接。
+- 服务器预先定义好端口映射规则（`MapProxy`）。
 - 客户端连接成功后，服务器即可将外网对公共端口的访问实时转发到对应客户端的内网服务。
-- 支持多台内网机器同时接入（每台机器运行一个客户端实例）。
+- 支持多台内网机器同时接入（每个内网运行一个客户端实例）。
 
 **优势**：
-- 配置极简、安全性高（支持 AccessToken 认证）。
+- 配置极简、安全性高（支持 `AccessToken` 认证）。
 - 适合家庭 NAS、自建服务暴露、远程办公、开发调试等场景。
 
 **注意事项**：
@@ -85,40 +84,129 @@
   "AllowedHosts": "*",
   "urls": "http://*:1984",
   "SystemConfig": {
-    "AccessToken": "A982D360-E59E-4012-B4AF-E571169218AA",
     "UserName": "admin",
-    "Password": "123123"
-  },
-  "MapProxy": [
-    {
-      "Name": "远程桌面",
-      "PublicPort": 2000,
-      "LocalHost": "192.168.1.234",
-      "LocalPort": 3389
-    },
-    {
-      "Name": "Jellyfin",
-      "PublicPort": 8096,
-      "LocalHost": "192.168.1.250",
-      "LocalPort": 8096
-    },
-    {
-      "Name": "SSH",
-      "PublicPort": 10022,
-      "LocalHost": "192.168.1.239",
-      "LocalPort": 22
-    },
-    {
-      "Name": "MyWeb",
-      "PublicPort": 8080,
-      "LocalHost": "192.168.1.248",
-      "LocalPort": 80
-    }
-  ]
+    "Password": "123123",
+    "MapGroups": [
+      {
+        "GroupName": "家里的NAS",
+        "AccessToken": "A982D360-E59E-4012-B4AF-E571169218AA",
+        "MapProxy": [
+          {
+            "Name": "win2016远程桌面",
+            "PublicPort": 2000,
+            "LocalHost": "192.168.1.234",
+            "LocalPort": 3389
+          },
+          {
+            "Name": "Jellyfin",
+            "PublicPort": 8096,
+            "LocalHost": "192.168.1.250",
+            "LocalPort": 8096
+          },
+          {
+            "Name": "SSH",
+            "PublicPort": 10022,
+            "LocalHost": "192.168.1.234",
+            "LocalPort": 22
+          },
+          {
+            "Name": "MyWeb",
+            "PublicPort": 8080,
+            "LocalHost": "192.168.1.234",
+            "LocalPort": 80
+          }
+        ]
+      },
+      {
+        "GroupName": "公司网络",
+        "AccessToken": "C795479D-800E-49D9-BC38-A0B91B8A5544",
+        "MapProxy": [
+          {
+            "Name": "win2022远程桌面",
+            "PublicPort": 4000,
+            "LocalHost": "192.168.1.248",
+            "LocalPort": 3389
+          },
+          {
+            "Name": "SQL Server",
+            "PublicPort": 21433,
+            "LocalHost": "127.0.0.1",
+            "LocalPort": 1433
+          },
+          {
+            "Name": "Redis",
+            "PublicPort": 26379,
+            "LocalHost": "127.0.0.1",
+            "LocalPort": 6379
+          },
+          {
+            "Name": "Elasticsearch",
+            "PublicPort": 29200,
+            "LocalHost": "127.0.0.1",
+            "LocalPort": 9200
+          },
+          {
+            "Name": "Coremail",
+            "PublicPort": 29000,
+            "LocalHost": "127.0.0.1",
+            "LocalPort": 9000
+          },
+          {
+            "Name": "ESXi系统",
+            "PublicPort": 28081,
+            "LocalHost": "127.0.0.1",
+            "LocalPort": 8081
+          },
+          {
+            "Name": "MySQL",
+            "PublicPort": 23306,
+            "LocalHost": "127.0.0.1",
+            "LocalPort": 3306
+          }
+        ]
+      }
+    ]
+  }
 }
+
 ```
 
 ### 4.3 MapProxy 配置项表格说明
+`MapGroups` 为映射分组数组，可添加任意多个分组，实现不同内网环境的隔离。
+<table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+  <thead>
+    <tr>
+      <th style="border:1px solid #ddd; padding:8px; text-align:left; background-color:#f2f2f2;">字段名</th>
+      <th style="border:1px solid #ddd; padding:8px; text-align:left; background-color:#f2f2f2;">说明</th>
+      <th style="border:1px solid #ddd; padding:8px; text-align:left; background-color:#f2f2f2;">示例值</th>
+      <th style="border:1px solid #ddd; padding:8px; text-align:left; background-color:#f2f2f2;">必填</th>
+      <th style="border:1px solid #ddd; padding:8px; text-align:left; background-color:#f2f2f2;">备注</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border:1px solid #ddd; padding:8px;">GroupName</td>
+      <td style="border:1px solid #ddd; padding:8px;">分组名称，便于管理和日志区分</td>
+      <td style="border:1px solid #ddd; padding:8px;">家里的NAS</td>
+      <td style="border:1px solid #ddd; padding:8px;">是</td>
+      <td style="border:1px solid #ddd; padding:8px;">建议有意义名称，必须唯一</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #ddd; padding:8px;">AccessToken</td>
+      <td style="border:1px solid #ddd; padding:8px;">该组对应的客户端认证令牌</td>
+      <td style="border:1px solid #ddd; padding:8px;">A982D360-...</td>
+      <td style="border:1px solid #ddd; padding:8px;">是</td>
+      <td style="border:1px solid #ddd; padding:8px;">必须唯一，与客户端配置完全一致</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #ddd; padding:8px;">MapProxy</td>
+      <td style="border:1px solid #ddd; padding:8px;">该组内的端口映射规则数组</td>
+      <td style="border:1px solid #ddd; padding:8px;">...</td>
+      <td style="border:1px solid #ddd; padding:8px;">是</td>
+      <td style="border:1px solid #ddd; padding:8px;">可包含多个映射规则</td>
+    </tr>
+  </tbody>
+</table>
 
 `MapProxy` 为端口映射规则数组，可添加任意多个条目。每个条目对应一个需要暴露的内网服务。
 
@@ -262,8 +350,10 @@ chmod +x Tunneling.Client
 ## 7. 安全注意事项（必读）
 
 首次部署必须修改：
-- 服务端与所有客户端的 `AccessToken` → 复杂随机 GUID
-- 服务端 Password → 强密码
+
+服务端的 `UserName` 和 `Password` → 强密码
+每个 `MapGroups` 中的 `AccessToken` → 复杂随机 GUID，且不同组必须不同
+所有客户端的 `AccessToken` 必须与对应组保持一致
 
 所有流量经服务器中转，请确保服务器安全
 
