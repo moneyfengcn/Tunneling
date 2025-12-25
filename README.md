@@ -348,12 +348,10 @@ chmod +x Tunneling.Client
 ## 6. 使用方式
 外网直接通过服务端公网 IP + PublicPort 访问对应内网服务（示例见 4.3 表格）。
 ## 7. 安全注意事项（必读）
-
 首次部署必须修改：
-
-服务端的 `UserName` 和 `Password` → 强密码
-每个 `MapGroups` 中的 `AccessToken` → 复杂随机 GUID，且不同组必须不同
-所有客户端的 `AccessToken` 必须与对应组保持一致
+- 服务端的 `UserName` 和 `Password` → 强密码
+- 每个 `MapGroups` 中的 `AccessToken` → 复杂随机 GUID，且不同组必须不同
+- 所有客户端的 `AccessToken` 必须与对应组保持一致
 
 所有流量经服务器中转，请确保服务器安全
 
