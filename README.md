@@ -3,6 +3,9 @@
 ## 1. 工具简介
 
 **量子隧道（Tunneling）** 是一款高效、稳定的内网端口穿透工具，采用反向隧道技术，通过一台公网服务器实现外网安全访问多个内网服务（如远程桌面、Web、SSH、媒体服务器等）。
+
+**注意：<span style="color:red;">本项目为闭源项目，仅分享二进制程序！现在和将来都不会有开源的计划！！！</span>**
+
 ### 架构说明（C/S 模式）
 <img src="https://github.com/moneyfengcn/Tunneling/blob/main/main.jpg?raw=true" />
 
