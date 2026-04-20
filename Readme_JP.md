@@ -242,13 +242,29 @@ Tunneling.Client.exe
 
 **2. クライアントをWindowsサービスとしてインストール（推奨、起動時自動開始）**
 
-- 管理者権限でコマンドプロンプトまたはPowerShellを開き、実行：
+#### サービスのインストール/アンインストール
+
+コマンドプロンプトまたはPowerShellを開きます（**管理者権限不要**）。プログラムが自動的にUACダイアログを表示して権限をリクエストします：
 
 - **サービスインストール**：
 
 ```cmd
-sc create TunnelingClient binPath= "C:\path\to\Tunneling.Client.exe --service" start= auto
+Tunneling.Client.exe --install
 ```
+
+プログラムはサービスが既に存在するかを確認します。存在しない場合は自動的に作成し、自動起動に設定します。
+
+- **サービスアンインストール**：
+
+```cmd
+Tunneling.Client.exe --uninstall
+```
+
+プログラムはサービスが存在するかを確認します。存在する場合は自動的に停止して削除します。
+
+#### サービス状態の管理
+
+インストール後、以下のコマンドでサービスを管理できます：
 
 - **サービス開始**：
 
@@ -262,16 +278,16 @@ sc start TunnelingClient
 sc stop TunnelingClient
 ```
 
-- **サービスアンインストール**：
-
-```cmd
-sc delete TunnelingClient
-```
-
 - **状態確認**：
 
 ```cmd
 sc query TunnelingClient
+```
+
+- **サービスモード実行**（サービス起動時のみ使用）：
+
+```cmd
+Tunneling.Client.exe --service
 ```
 
 ### 5.3 Linux / macOS 実行方法

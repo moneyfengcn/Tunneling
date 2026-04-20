@@ -249,13 +249,29 @@ Tunneling.Client.exe
 
 **2. Install Client as Windows Service (Recommended, auto-start on boot)**
 
-- Open Command Prompt or PowerShell **as Administrator** and execute:
+#### Install/Uninstall Service
+
+Open Command Prompt or PowerShell (**no administrator privilege required**); the program will automatically display a UAC dialog requesting permission:
 
 - **Install Service**:
 
 ```cmd
-sc create TunnelingClient binPath= "C:\path\to\Tunneling.Client.exe --service" start= auto
+Tunneling.Client.exe --install
 ```
+
+The program will check if the service already exists; if not, it will automatically create it and set it to auto-start.
+
+- **Uninstall Service**:
+
+```cmd
+Tunneling.Client.exe --uninstall
+```
+
+The program will check if the service exists; if it does, it will automatically stop and delete it.
+
+#### Manage Service Status
+
+After installation, you can use the following commands to manage the service:
 
 - **Start Service**:
 
@@ -269,16 +285,16 @@ sc start TunnelingClient
 sc stop TunnelingClient
 ```
 
-- **Uninstall Service**:
-
-```cmd
-sc delete TunnelingClient
-```
-
 - **Check Status**:
 
 ```cmd
 sc query TunnelingClient
+```
+
+- **Run in Service Mode** (used only when service starts):
+
+```cmd
+Tunneling.Client.exe --service
 ```
 
 ### 5.3 Linux / macOS Running Methods
