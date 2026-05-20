@@ -95,7 +95,11 @@
             "Name": "win2016远程桌面",
             "PublicPort": 2000,
             "LocalHost": "192.168.1.234",
-            "LocalPort": 3389
+            "LocalPort": 3389,
+            "Policy": {
+              "Time": "00:03:00",
+              "Threshold": 3
+            }
           },
           {
             "Name": "Jellyfin",
@@ -249,8 +253,67 @@
       <td style="border:1px solid #ddd; padding:8px;">是</td>
       <td style="border:1px solid #ddd; padding:8px;">对应服务的实际监听端口（如 RDP 为 3389）</td>
     </tr>
+    <tr>
+      <td style="border:1px solid #ddd; padding:8px;">Policy（可选）</td>
+      <td style="border:1px solid #ddd; padding:8px;">连接防暴破策略，用于限制来自同一 IP 的连接频率</td>
+      <td style="border:1px solid #ddd; padding:8px;">见下表</td>
+      <td style="border:1px solid #ddd; padding:8px;">否</td>
+      <td style="border:1px solid #ddd; padding:8px;">不配置则无限制，支持多个映射规则配置不同策略</td>
+    </tr>
   </tbody>
 </table>
+
+#### Policy 防暴破策略配置
+
+`Policy` 用于防止恶意IP频繁尝试暴力破解，具体字段说明：
+
+<table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+  <thead>
+    <tr>
+      <th style="border:1px solid #ddd; padding:8px; text-align:left; background-color:#f2f2f2;">字段名</th>
+      <th style="border:1px solid #ddd; padding:8px; text-align:left; background-color:#f2f2f2;">说明</th>
+      <th style="border:1px solid #ddd; padding:8px; text-align:left; background-color:#f2f2f2;">示例值</th>
+      <th style="border:1px solid #ddd; padding:8px; text-align:left; background-color:#f2f2f2;">必填</th>
+      <th style="border:1px solid #ddd; padding:8px; text-align:left; background-color:#f2f2f2;">备注</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border:1px solid #ddd; padding:8px;">Time</td>
+      <td style="border:1px solid #ddd; padding:8px;">时间窗口，格式为 HH:MM:SS</td>
+      <td style="border:1px solid #ddd; padding:8px;">00:03:00</td>
+      <td style="border:1px solid #ddd; padding:8px;">是</td>
+      <td style="border:1px solid #ddd; padding:8px;">表示在此时间内统计连接数；示例为 3 分钟</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #ddd; padding:8px;">Threshold</td>
+      <td style="border:1px solid #ddd; padding:8px;">连接次数阈值</td>
+      <td style="border:1px solid #ddd; padding:8px;">3</td>
+      <td style="border:1px solid #ddd; padding:8px;">是</td>
+      <td style="border:1px solid #ddd; padding:8px;">同一 IP 在 Time 时间内连接数超过此值将被拒绝；整数类型</td>
+    </tr>
+  </tbody>
+</table>
+
+**使用示例**：
+
+```json
+"Policy": {
+  "Time": "00:03:00",
+  "Threshold": 3
+}
+```
+
+含义：同一 IP 在 3 分钟内连接超过 3 次，将被暂时拒绝，直到时间窗口重置。
+
+**推荐默认值**：
+- `Time`：远程桌面服务建议 "00:05:00"（5 分钟）
+- `Threshold`：普通服务建议 5，高安全性服务（如 RDP）建议 3
+
+**其他说明**：
+- Policy 是可选配置，不配置时无连接限制
+- 同一映射规则只能配置一个 Policy，但不同映射规则可以配置不同的 Policy
+- 被拒绝的 IP 将无法建立连接，直到时间窗口重置后才能重新尝试
 <p><strong>示例映射效果</strong>（假设服务端公网 IP 为 8.134.13.229）：</p>
 
 <table style="width:100%; border-collapse: collapse;">
@@ -284,6 +347,25 @@
     </tr>
   </tbody>
 </table>
+
+### 4.4 MapProxy 配置项表格说明
+
+将服务端安装为 Windows 服务（推荐，开机自启）
+
+#### 安装/卸载服务
+打开命令提示符或 PowerShell（**无需管理员身份**），程序会自动弹出 UAC 对话框请求权限：
+
+- **安装服务**：
+```cmd
+Tunneling.Server.exe --install
+```
+程序会检查服务是否已存在，若不存在则自动创建并设置为自动启动。
+
+- **卸载服务**：
+```cmd
+Tunneling.Server.exe --uninstall
+```
+程序会检查服务是否存在，若存在则自动停止并删除服务。
 
 ## 5. 客户端部署与配置（Tunneling.Client）
 
@@ -349,16 +431,50 @@ sc stop TunnelingClient
 ```cmd
 sc query TunnelingClient
 ```
-- **以服务模式运行**（仅在服务启动时使用）：
-```cmd
-Tunneling.Client.exe --service
-```
 ### 5.3 Linux / macOS 运行方式
 ```Bash
 chmod +x Tunneling.Client
 ./Tunneling.Client
 ```
 建议使用 `systemd` 或 `nohup` 实现开机自启。
+Linux 下 systemd 单元示例（保存为 `/etc/systemd/system/tunneling.service`）：
+
+```bash
+[Unit]
+Description=Tunneling Client Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/tunneling
+ExecStart=/opt/tunneling/Tunneling.Client
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+KillMode=process
+SyslogIdentifier=Tunneling.Client
+
+[Install]
+WantedBy=multi-user.target
+```
+
+安装并启用服务：
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable tunneling.service
+sudo systemctl start tunneling.service
+sudo systemctl status tunneling.service
+```
+
+如果不使用 systemd，也可以用 `nohup` 简单后台运行：
+
+```bash
+nohup /opt/tunneling/Tunneling.Client > /var/log/tunneling.log 2>&1 &
+```
+
+说明：根据你的发行版调整 `WorkingDirectory` 和可执行文件路径（如 `/opt/tunneling`）。
 ## 6. 使用方式
 外网直接通过服务端公网 IP + PublicPort 访问对应内网服务（示例见 4.3 表格）。
 ## 7. 安全注意事项（必读）
@@ -375,4 +491,4 @@ chmod +x Tunneling.Client
 - 外网访问失败：查看服务端日志确认客户端是否在线
 - Windows 服务问题：查看`事件查看器`
 
-祝使用愉快！🚀
+祝使用愉快！🚀祝使用愉快！🚀
