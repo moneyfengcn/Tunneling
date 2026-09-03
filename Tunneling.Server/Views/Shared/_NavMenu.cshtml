@@ -1,0 +1,41 @@
+﻿@functions {
+    private string IsActive(string controller)
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();       
+        return string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    }
+}
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="brand-icon">⚡</div>
+        <div class="brand">Quantum Tunneling</div>
+    </div>
+    <ul class="menu">
+        <a asp-action="Index" asp-controller="Home" class="menu-item @IsActive("Home")">
+            <i class="fa-solid fa-house menu-icon"></i>
+            <span>Dashboard</span>
+        </a>
+        <a asp-action="Index" asp-controller="MapProxy" class="menu-item @IsActive("MapProxy")">
+            <i class="fa-solid fa-link menu-icon"></i>
+            <span>映射配置</span>
+        </a>
+        <a asp-action="Index" asp-controller="FileTrans" class="menu-item @IsActive("FileTrans")">
+            <i class="fa-solid fa-folder menu-icon"></i>
+            <span>文件中转站</span>
+        </a>
+        <a asp-action="Index" asp-controller="ShowLogs" class="menu-item @IsActive("ShowLogs")">
+            <i class="fa-solid fa-file-lines menu-icon"></i>
+            <span>实时日志</span>
+        </a>
+    </ul>
+    <div class="sidebar-footer">
+        <div class="server-info">
+            <p class="info-label">服务器状态</p>
+            <p class="info-value">运行中 ✓</p>
+            <p class="info-small">启动时间: @Program.RunTime.ToString("yyyy-MM-dd HH:mm:ss")</p>
+            <p class="info-small">内核版本: @Program.Version</p>
+        </div>
+    </div>
+</aside>
+

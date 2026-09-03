@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Tunneling</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/style.css" asp-append-version="true">
+</head>
+
+<body>
+
+    <!-- 1. 左侧侧边栏 -->
+    @await Html.PartialAsync("_NavMenu")
+
+    <!-- 2. 右侧主内容区 -->
+    <main class="main-content">
+        <!-- 顶部导航栏 -->
+        <header class="top-navbar">
+            <div class="navbar-left">
+                <h1 class="page-title-header">@ViewData["Title"]</h1>
+            </div>
+            <div class="navbar-right">
+                <a  asp-action="Logout" asp-controller="Home" class="logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>退出系统</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- 核心数据展示区 -->
+        <div class="content-body">
+            @RenderBody()
+        </div>
+    </main>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>
+
+ 

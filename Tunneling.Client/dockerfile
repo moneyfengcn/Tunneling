@@ -1,0 +1,10 @@
+FROM debian:bookworm-slim
+
+WORKDIR /app
+
+# 将当前 ~/app 目录下的所有文件复制到容器的 /app 中
+COPY . .
+
+RUN chmod +x Tunneling.Client
+
+ENTRYPOINT ["./Tunneling.Client"]

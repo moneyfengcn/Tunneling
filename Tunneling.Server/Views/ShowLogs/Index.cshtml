@@ -1,0 +1,95 @@
+﻿@{
+    ViewData["Title"] =  "实时日志";
+}
+<script src="~/signalr.min.js"></script>
+<style>
+    .log-box {
+        white-space: pre-wrap;
+        height: calc(100vh - 150px);
+        overflow: auto;
+        background: #000000;
+        color: #ffffff;
+        padding: 12px 16px;
+        border: 1px solid #003300;
+        border-radius: 8px;
+        font-family: Consolas, Monaco, "Courier New", "Microsoft YaHei", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        box-sizing: border-box;
+        margin-bottom: 20px;
+    }
+
+        /* 更酷的绿色滚动条 */
+        .log-box::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .log-box::-webkit-scrollbar-track {
+            background: #000000;
+            border-radius: 10px;
+        }
+
+        .log-box::-webkit-scrollbar-thumb {
+            background: #00BFFF;
+            border-radius: 10px;
+        }
+
+            .log-box::-webkit-scrollbar-thumb:hover {
+                background: #00BFFF;
+            }
+</style>
+ 
+
+
+<div id="logs" class="log-box"> </div>
+
+@section Scripts {
+    <script>
+        (function () {
+                const connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/logs")
+                    .withAutomaticReconnect()
+                    .build();
+
+                connection.on("ReceiveLog", function (message) {
+                        const logs = document.getElementById("logs");
+                        const line = document.createElement("div");
+
+                        console.log(message);
+
+                       // ============ 这里是颜色高亮规则 ============
+                        let html = message
+                            // 数字高亮（橙色）
+                            .replace(/\b(\d+)\b/g, '<span style="color:#ffbb66;">$1</span>')                         
+                            // ERROR 红色
+                            .replace(/\b(ERROR|Exception|Failed|Fail|Err)\b/gi, '<span style="color:#ff4444; font-weight:bold;">$1</span>')
+                            // WARN 黄橙色
+                            .replace(/\b(WARN|Warning)\b/gi, '<span style="color:#ffaa00; font-weight:bold;">$1</span>')
+                            // INFO 青色
+                            .replace(/\b(Information|Info|INF)\b/g, '<span style="color:#00dddd;">$1</span>')
+                            // DEBUG 灰绿色
+                            .replace(/\b(DEBUG|Debug|DBG)\b/g, '<span style="color:#88cc88;">$1</span>')
+                            // SUCCESS / OK 亮绿色
+                            .replace(/\b(SUCCESS|OK|Success|Done)\b/gi, '<span style="color:#00ff00; font-weight:bold;">$1</span>')
+                            // JSON 键值对稍微美化（可选）
+                            .replace(/(".*?")\s*:/g, '<span style="color:#ffeb95;">$1</span>:')
+                            // 时间戳高亮（浅绿）
+                            .replace(/((\d{2,4}[-/]\d{1,2}[-/]\d{1,2}[\sT]\d{2}:\d{2}:\d{2}.*?))/g, '<span style="color:#88ff88;">$1</span>');
+
+                        line.innerHTML = html;
+
+                        if (logs.children.length >= 200) {
+                            logs.removeChild(logs.firstChild);
+                        }
+
+                        logs.appendChild(line);
+                        logs.scrollTop = logs.scrollHeight;
+                });
+
+                connection.start().catch(function (err) {
+                    console.error(err.toString());
+                });
+            })();
+    </script>
+}
+

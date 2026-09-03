@@ -1,0 +1,142 @@
+﻿@{
+    Layout = null;
+}
+@using Tunneling.Server.Models.Home
+@model LoginModel
+
+@{
+    var ipAddress = string.Empty;
+    if (this.Context.Connection?.RemoteIpAddress != null)
+    {
+        if (this.Context.Connection.RemoteIpAddress.IsIPv4MappedToIPv6)
+        {
+            ipAddress = this.Context.Connection.RemoteIpAddress.MapToIPv4().ToString();
+        }
+        else
+        {
+            ipAddress = this.Context.Connection.RemoteIpAddress.ToString();
+        }
+    }
+}
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Tunneling - 登录</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <!-- 左侧装饰面板 -->
+        <div class="login-panel">
+            <div class="panel-content">
+                <div class="panel-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h2>量子隧道系统</h2>
+                <p>Quantum Tunneling Dashboard</p>
+                <div class="features">
+                    <div class="feature-item">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>高性能网络穿透</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>实时监控与统计</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fa-solid fa-lock"></i>
+                        <span>基于反向隧道技术</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧登录表单 -->
+        <div class="login-form-wrapper">
+            <div class="login-form">
+                <!-- 品牌区域 -->
+                <div class="form-header">
+                    <div class="brand-logo">
+                        <span class="logo-icon">⚡</span>
+                        <span class="logo-text">Quantum Tunneling</span>
+                    </div>
+                    <p class="form-subtitle">欢迎回来，请登录您的账户</p>
+                </div>
+
+                <!-- 登录表单 -->
+                @using (Html.BeginForm("Login", "Home", FormMethod.Post, new { @class = "form-content", id = "loginForm" }))
+                {
+                    <!-- 用户名输入框 -->
+                    <div class="form-group">
+                        <label for="username" class="form-label">
+                            <i class="fa-solid fa-user"></i>
+                            <span>用户名</span>
+                        </label>
+                        @Html.TextBoxFor(m => m.UserName, new { id = "username", @class = "form-input", placeholder = "请输入用户名或邮箱", required = "required" })
+                    </div>
+
+                    <!-- 密码输入框 -->
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            <i class="fa-solid fa-lock"></i>
+                            <span>密码</span>
+                        </label>
+                        <div class="password-input-wrapper">
+                            @Html.PasswordFor(m => m.Password, new { id = "password", @class = "form-input", placeholder = "请输入密码", required = "required" })
+                            <button type="button" class="password-toggle" id="passwordToggle">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 记住密码 -->
+                    <div class="form-options">
+                        <label class="checkbox-wrapper">
+                            @Html.CheckBoxFor(m => m.RememberMe, new { id = "remember", @class = "checkbox-input" })
+                            <span class="checkbox-label">记住我</span>
+                        </label>
+                    </div>
+
+                    <!-- 登录按钮 -->
+                    <button type="submit" class="login-btn">
+                        <span class="btn-text">登录</span>
+                        <i class="fa-solid fa-arrow-right btn-icon"></i>
+                    </button>
+                }
+            </div>
+
+            <!-- 页脚 -->
+            <div class="login-footer">
+                <p>&copy; 2026 Quantum Tunneling. 保留所有权利。</p>
+                <div class="footer-links">
+                    <a href="#">隐私政策</a>
+                    <span class="divider">•</span>
+                    <a href="#">服务条款</a>
+                    <span class="divider">•</span>
+                    <a href="https://tunneling.cc/">联系我们</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            // 密码显示/隐藏切换
+            const passwordToggle = document.getElementById('passwordToggle');
+            const passwordInput = document.getElementById('password');
+
+            passwordToggle.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+            });
+
+      
+    </script>
+</body>
+</html>

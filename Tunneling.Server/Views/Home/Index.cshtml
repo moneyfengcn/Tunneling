@@ -1,0 +1,34 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div id="statusTable">
+    @await Html.PartialAsync("PartialStatus")
+</div>
+
+
+@section Scripts {
+    <script>
+        // 页面加载完成后开始轮询
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('statusTable');
+
+            // 每2秒刷新一次
+            setInterval(updateStatus, 2000);
+
+            function updateStatus() {
+                fetch('/Home/PartialStatus')
+                    .then(response => {
+                        if (!response.ok) console.error('Network response was not ok');
+                        return response.text();
+                    })
+                    .then(html => {
+                        container.innerHTML = html;
+                    })
+                    .catch(err => {
+                        console.error("刷新状态失败", err);
+                    });
+            }
+        });
+    </script>
+}

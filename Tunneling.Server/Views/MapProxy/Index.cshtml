@@ -1,0 +1,44 @@
+﻿@using Tunneling.Server.Infrastructure
+
+@model SystemConfig
+
+@{
+    ViewData["Title"] = "映射配置";
+}
+
+ 
+
+<h2 class="section-title">内网穿透隧道服务列表</h2>
+
+@foreach (var group in @Model.MapGroups)
+{
+    <div class="service-group">
+        <div class="group-header">
+            <i class="fa-regular fa-folder"></i>
+            <span>@group.GroupName</span>
+        </div>
+        <table class="service-table">
+            <thead>
+                <tr>
+                    <th class="col-name">服务名称</th>
+                    <th class="col-status">公网端口</th>
+                    <th class="col-sessions">内网主机</th>
+                    <th class="col-up">内网端口</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in group.MapProxy)
+                {
+                    <tr class="service-row">
+                        <td class="col-name"><i class="fa-solid fa-globe" style="color: #3b82f6;"></i> @item.Name</td>
+                        <td class="col-status"><span class="status-badge online">@item.PublicPort</span></td>
+                        <td class="col-sessions">@item.LocalHost</td>
+
+                        <td class="col-total">@item.LocalPort</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+} 

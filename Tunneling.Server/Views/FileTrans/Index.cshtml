@@ -1,0 +1,185 @@
+﻿@{
+    ViewData["Title"] = "文件中转站";
+}
+@model List<FileInfo>
+
+<link rel="stylesheet" href="~/upload.css">
+
+ 
+<div class="upload-section">
+    <div class="upload-header">
+        <h2 class="section-title">上传文件</h2>
+    </div>
+
+    <form asp-action="Upload" asp-controller="FileTrans" method="post" enctype="multipart/form-data" id="uploadForm">
+        <div class="upload-area">
+
+            <div class="file-select-group">
+                <label for="file" class="file-label-btn">
+                    <i class="fas fa-folder-open"></i> 选择文件
+                </label>
+                <input type="file" id="file" name="file" required style="display: none;">
+
+                <div class="file-name-display">
+                    <span id="selectedFileName">未选择文件</span>
+                </div>
+
+                <button type="submit" class="upload-btn">
+                    <i class="fas fa-cloud-upload-alt"></i> 提交上传
+                </button>
+            </div>
+        </div>
+        @Html.AntiForgeryToken()
+    </form>
+
+    <!-- 进度条 -->
+    <div id="progressContainer" style="display: none; margin-top: 20px;">
+        <div class="d-flex justify-content-between mb-1">
+            <span>正在上传...</span>
+            <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress" style="height: 28px;">
+            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                 role="progressbar" style="width: 0%;">
+            </div>
+        </div>
+    </div>
+
+    <div id="result" class="mt-3"></div>
+</div>
+
+<!-- 文件列表保持不变 -->
+<div class="table-container">
+    <h2 class="section-title">已上传文件</h2>
+    <table class="service-table">
+        <thead>
+            <tr>
+                <th>文件名</th>
+                <th>大小</th>
+                <th>日期</th>
+                <th style="text-align: right;">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var file in Model)
+            {
+                <tr>
+                    <td><strong>@file.Name</strong></td>
+                    <td>@file.Length.ToString("N0")</td>
+                    <td>@file.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                    <td style="text-align: right;">
+                        <a class="download-btn" href="/FileTrans/Downloads/@file.Name" download>
+                            <i class="fas fa-download"></i> 下载
+                        </a>
+                        <button class="delete-btn btn-delete" data-name="@file.Name">
+                            <i class="fas fa-trash"></i> 删除
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<p class="footer-note">
+    仅供临时上传下载使用，请用完即删，保持整洁。
+</p>
+
+ 
+@section Scripts {
+    <script>
+        // 文件选择显示
+        const fileInput = document.getElementById('file');
+        const fileNameEl = document.getElementById('selectedFileName');
+
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileNameEl.textContent = this.files[0].name;
+            } else {
+                fileNameEl.textContent = "未选择文件";
+            }
+        });
+
+        // 上传表单提交（保持原有逻辑）
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const files = fileInput.files;
+            if (files.length === 0) {
+                alert("请选择文件！");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', files[0]);
+
+            const container = document.getElementById('progressContainer');
+            const bar = document.getElementById('progressBar');
+            const percentEl = document.getElementById('progressPercent');
+            const result = document.getElementById('result');
+
+            container.style.display = 'block';
+            result.innerHTML = '';
+
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    bar.style.width = percentComplete + '%';
+                    percentEl.textContent = percentComplete + '%';
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    result.innerHTML = '<div class="alert alert-success">✅ 上传成功！</div>';
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    result.innerHTML = '<div class="alert alert-danger">❌ 上传失败</div>';
+                }
+                container.style.display = 'none';
+            };
+
+            xhr.onerror = function() {
+                result.innerHTML = '<div class="alert alert-danger">❌ 网络错误</div>';
+                container.style.display = 'none';
+            };
+
+            xhr.open('POST', '/FileTrans/Upload', true);
+            xhr.send(formData);
+        });
+
+        // 删除文件逻辑（保持不变）
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.btn-delete')) return;
+            const btn = e.target.closest('.btn-delete');
+            const fileName = btn.dataset.name;
+
+            if (!confirm(`确定要永久删除文件 "${fileName}" 吗？`)) return;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 删除中...';
+            btn.disabled = true;
+
+            fetch('/FileTrans/Delete?fileName=' + encodeURIComponent(fileName), {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]').value
+                }
+            })
+            .then(res => {
+                if (res.ok) location.reload();
+                else {
+                    alert("删除失败");
+                    btn.innerHTML = '<i class="fas fa-trash"></i> 删除';
+                    btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                alert("网络错误");
+                btn.innerHTML = '<i class="fas fa-trash"></i> 删除';
+                btn.disabled = false;
+            });
+        });
+    </script>
+}

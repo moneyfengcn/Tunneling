@@ -1,0 +1,97 @@
+﻿@using Tunneling.Server.Framework
+@using Tunneling.Server.Hubs
+@using Tunneling.Server.Infrastructure
+@inject ISystemStatus systemStatus
+
+@{
+    var data = systemStatus.GetServerInfo();   // 直接返回 data 部分
+}
+
+<!-- 顶部统计卡片 -->
+<div class="stats-grid">
+    <div class="stat-card gradient-yellow">
+        <div class="stat-icon"><i class="fa-solid fa-hourglass-end"></i></div>
+        <div class="stat-content">
+            <div class="stat-label">系统运行时间</div>
+            <div class="stat-value">@data.ServerInfo.RunTime</div>
+        </div>
+    </div>
+    <div class="stat-card gradient-blue">
+        <div class="stat-icon"><i class="fa-solid fa-arrow-up"></i></div>
+        <div class="stat-content">
+            <div class="stat-label">实时网络上行</div>
+            <div class="stat-value">@data.ServerInfo.Upload.ToString("0.00") <span class="unit">Mbps</span></div>
+        </div>
+    </div>
+    <div class="stat-card gradient-purple">
+        <div class="stat-icon"><i class="fa-solid fa-arrow-down"></i></div>
+        <div class="stat-content">
+            <div class="stat-label">实时网络下行</div>
+            <div class="stat-value">@data.ServerInfo.Download.ToString("0.00") <span class="unit">Mbps</span></div>
+        </div>
+    </div>
+    <div class="stat-card gradient-green">
+        <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-content">
+            <div class="stat-label">隧道节点</div>
+            <div class="stat-value">@data.ServerInfo.NodeCount <span class="unit">个</span></div>
+        </div>
+    </div>
+</div>
+
+<h2 class="section-title">内网穿透隧道服务列表</h2>
+
+<div class="service-groups" id="serviceContainer">
+    @foreach (var group in data.Channels)
+    {
+        <div class="service-group">
+            <div class="group-header">
+                <i class="fa-regular fa-folder"></i>
+                @{
+                    int channelCount = ChannelsHub.UserList.Count(a => a.Equals(group.ChannelName));
+                    string statusInfo = string.Empty;
+
+                    if (channelCount < 1)
+                    {
+                        statusInfo = "<span style='color:gray;font-size: smaller;'>未接入(0)</span>";
+                    }
+                    else if (channelCount == 1)
+                    {
+                        statusInfo = "<span style='color:green;font-size: smaller;'>正常(1)</span>";
+                    }
+                    else if (channelCount > 1)
+                    {
+                        statusInfo = $"<span style='color:red;font-size: smaller;'>异常({channelCount})</span>";
+                    }
+                }
+                <span>@group.ChannelName</span> @Html.Raw(statusInfo)
+            </div>
+            <table class="service-table">
+                <thead>
+                    <tr>
+                        <th class="col-name">服务名称</th>
+                        <th class="col-sessions">会话</th>
+                        <th class="col-up">上行</th>
+                        <th class="col-down">下行</th>
+                        <th class="col-total">总会话数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in group.SessionInfos)
+                    {
+                        <tr class="service-row">
+                            <td class="col-name"><i class="fa-solid fa-globe" style="color: #3b82f6;"></i> @item.Name</td>
+
+                            <td class="col-sessions">@item.SessionsCount</td>
+                            <td class="col-up"><i class="fa-solid  fa-arrow-up text-success" style="color: blue;"></i> @item.UpCount.FlowRateFormat() </td>
+                            <td class="col-down"><i class="fa-solid fa-arrow-down" style="color: green;"></i> @item.DownCount.FlowRateFormat() </td>
+                            <td class="col-total">@item.TotalSessions</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+ 
