@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Tunneling.Client/Tunneling.Client.csproj" Id="0a7aed20-9729-4f52-bb3a-8993565cbcd3" />
+  <Project Path="Tunneling.Core/Tunneling.Core.csproj" Id="081c7177-3509-4116-870d-a5b0a76a74fb" />
+  <Project Path="Tunneling.Server/Tunneling.Server.csproj" />
+</Solution>
