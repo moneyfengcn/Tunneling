@@ -14,7 +14,7 @@ namespace Tunneling.Core
 
     public class ProxyDispatcher : IDisposable
     {
-        public DataReceivedEventHandler? OnDataReceived;
+        required public DataReceivedEventHandler? OnDataReceived;
         public event ProxyEventHandler OnProxyConnected;
 
         private ConcurrentDictionary<string, List<ProxySocket>> _proxy = new ConcurrentDictionary<string, List<ProxySocket>>();
@@ -49,7 +49,7 @@ namespace Tunneling.Core
             if (IsClosed) return false;
             var proxy = new ProxySocket(this, channelName, sessionId, address, port)
             {
-                 FlowControl = this.FlowControl 
+                FlowControl = this.FlowControl
             };
 
             var isConnected = proxy.Connect();
